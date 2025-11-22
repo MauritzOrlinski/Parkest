@@ -5,8 +5,9 @@ from sklearn.preprocessing import OneHotEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 
-FIXED_SEARCH_TIME = 5
-TIME_PER_SPOT = 1
+FIXED_SEARCH_TIME = 2.5
+TIME_PER_SPOT = 1.2
+TIME_PENALTY = 10
 
 
 class ParkingCapacityEstimator:
@@ -82,24 +83,31 @@ class ParkingCapacityEstimator:
         return float(self.model.predict(X_new)[0])
 
     def predict_search_time(self, day_type, hour, total_capacity, latitude, longitude):
-        p = 1 - self.predict(day_type, hour, total_capacity, latitude, longitude)
-        i = 0
-        while p > 0.0001:
-            p *= p
-            i += 1
-        return i * TIME_PER_SPOT + FIXED_SEARCH_TIME
+        p_occupied = self.predict(day_type, hour, total_capacity, latitude, longitude)
+
+        p_free = 1 - p_occupied
+
+        if p_free < 1e-3:
+            expected_spots = total_capacity * 2
+        else:
+            expected_spots = 1 / p_free
+        total_time = expected_spots * TIME_PER_SPOT + FIXED_SEARCH_TIME
+        if p_free < 0.05:
+            total_time += TIME_PENALTY
+
+        return total_time
 
 
 if __name__ == "__main__":
     # use like this:
     estimator = ParkingCapacityEstimator("data/synthetic_parking_occupancy.csv")
 
-    prediction = estimator.predict(
+    prediction = estimator.predict_search_time(
         day_type="SA",
-        hour=14,
-        total_capacity=10,
+        hour=18,
+        total_capacity=100,
         latitude=48.13974710476859,
         longitude=11.540635988637927,
     )
 
-    print("Predicted occupancy rate:", prediction)
+    print("Predicted search time:", prediction)

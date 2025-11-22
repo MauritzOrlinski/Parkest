@@ -36,11 +36,14 @@ function ProfilePage({ user, onLogout }) {
         <section className="card profile-card">
           <h2 className="profile-name">{user?.name || "Driver"}</h2>
 
-          <p className="profile-email">
+          <div className="profile-email">
             <p>{user?.email || "test@email.com"}</p>
-            Driving with Parking Buddy since{" "}
-            <span className="profile-email-highlight">private beta</span>
-          </p>
+            <p>
+              Driving with Parking Buddy since{" "}
+              <span className="profile-email-highlight">private beta</span>
+            </p>
+        </div>
+
         </section>
 
         {/* Time saved summary */}

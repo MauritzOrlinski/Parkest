@@ -8,6 +8,7 @@ from sklearn.pipeline import Pipeline
 FIXED_SEARCH_TIME = 2.5
 TIME_PER_SPOT = 1.2
 TIME_PENALTY = 10
+FACTOR = 2
 
 
 class ParkingCapacityEstimator:
@@ -95,7 +96,7 @@ class ParkingCapacityEstimator:
         if p_free < 0.05:
             total_time += TIME_PENALTY
 
-        return total_time
+        return 2 * total_time
 
 
 if __name__ == "__main__":
@@ -103,8 +104,8 @@ if __name__ == "__main__":
     estimator = ParkingCapacityEstimator("data/synthetic_parking_occupancy.csv")
 
     prediction = estimator.predict_search_time(
-        day_type="SA",
-        hour=18,
+        day_type="SO",
+        hour=10,
         total_capacity=100,
         latitude=48.13974710476859,
         longitude=11.540635988637927,

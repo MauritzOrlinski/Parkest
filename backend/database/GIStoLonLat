@@ -1,9 +1,15 @@
 import pandas as pd
 from pyproj import Transformer
+import json
+import os
 
 # Load CSV
-df = pd.read_csv("opendata_ruhver_parkseiten_line_Edited.csv")
+# Get the directory of this script
+script_dir = os.path.dirname(os.path.abspath(__file__))
 
+# Load CSV with correct path
+csv_path = os.path.join(script_dir, "CSVs/opendata_ruhver_parkseiten_line_Edited.csv")
+df = pd.read_csv(csv_path)
 # Coordinate transformer (update EPSG if needed)
 transformer = Transformer.from_crs(25832, 4326, always_xy=True)
 
@@ -63,8 +69,51 @@ def cell_to_latlng(cell):
 df["js_latlng"] = df["shape (LINESTRING)"].apply(cell_to_latlng)
 
 # 🟢 SAVE NEW CSV
-df.to_csv("opendata_ruhver_parkseiten_line_Edited_converted.csv", index=False)
+output_csv = os.path.join(script_dir, "CSVs/opendata_ruhver_parkseiten_line_Edited_converted.csv")
+df.to_csv(output_csv, index=False)
 
 print("Conversion complete! File saved as 'park_spaces_converted.csv'")
 
 
+# Function to convert JS-like string to Python list
+def parse_js_latlng(js_string):
+    """
+    Converts a string like '[ { lat: 48.123, lng: 11.456 }, ... ]'
+    into a Python list of dicts: [{'lat': 48.123, 'lng': 11.456}, ...]
+    """
+    try:
+        # Replace JS object syntax to JSON syntax
+        json_compatible = (
+            js_string.replace("{ lat:", '{"lat":')
+                     .replace("lng:", '"lng":')
+                     .replace("}", "}")
+        )
+        return json.loads(json_compatible)
+    except Exception as e:
+        print(f"Error parsing: {js_string}\n{e}")
+        return []
+
+# Build JSON structure
+json_list = []
+
+for _, row in df.iterrows():
+    js_path = parse_js_latlng(row.get("js_latlng", "[]"))
+    spot = {
+        "FID": row.get("FID"),
+        "name": row.get("strasse", ""),
+        "parkregel_name": row.get("parkregel_name", ""),
+        "path": js_path
+    }
+    json_list.append(spot)
+
+# Create output directory if it doesn't exist
+output_dir = os.path.join(script_dir, "CSVs")
+os.makedirs(output_dir, exist_ok=True)
+
+output_json = os.path.join(output_dir, "park_spaces.json")
+with open(output_json, "w", encoding="utf-8") as f:
+    json.dump(json_list, f, ensure_ascii=False, indent=2)
+
+
+
+print("JSON file saved as 'park_spaces.json'!")

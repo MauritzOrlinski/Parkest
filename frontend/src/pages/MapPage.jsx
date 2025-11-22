@@ -31,7 +31,7 @@ function MapPage({ user }) {
   }, []);
 
   return (
-    <div className="screen">
+    <div className="screen map-screen">
       <header className="header header--map">
         <div className="header-left">
           <h1 className="logo">Parking Buddy</h1>

@@ -20,32 +20,40 @@ function ProfilePage({ user, onLogout }) {
   const stats = user?.stats || {};
 
   return (
-    <div className="screen">
-      <header className="header header--with-back">
-        <Link to="/" className="back-link">
+    <div className="screen profile-screen">
+      <header className="header header--with-back profile-header">
+        <Link to="/map" className="back-link profile-back-link">
           ←
         </Link>
-        <h1 className="logo">My stats</h1>
+        <div className="profile-header-center">
+          <h1 className="logo profile-logo">My stats</h1>
+          <p className="profile-header-subtitle">Parking-aware time saved overview</p>
+        </div>
       </header>
 
-      <main className="screen-main">
-        {/* Profile header */}
-        <section className="card">
-          <div className="avatar-circle">
-            {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
-          </div>
+      <main className="screen-main profile-main">
+        {/* Profile identity card */}
+        <section className="card profile-card">
           <h2 className="profile-name">{user?.name || "Driver"}</h2>
-          <p className="profile-email">{user?.email}</p>
+
+          <p className="profile-email">
+            <p>{user?.email || "test@email.com"}</p>
+            Driving with Parking Buddy since{" "}
+            <span className="profile-email-highlight">private beta</span>
+          </p>
         </section>
 
         {/* Time saved summary */}
-        <section className="card">
-          <h3 className="card-title">Time saved by smarter parking</h3>
+        <section className="card profile-card profile-summary-card">
+          <h3 className="card-title profile-card-title">
+            Time saved by smarter parking
+          </h3>
           <p className="profile-highlight-number">
             {formatMinutesToHoursMinutes(stats.totalTimeSavedMinutes)}
           </p>
           <p className="profile-highlight-subtext">
-            Thanks to estimating parking search time before you leave.
+            Estimated time you didn&apos;t spend circling for parking, based on your
+            tracked trips.
           </p>
 
           <div className="stats-grid">
@@ -81,17 +89,17 @@ function ProfilePage({ user, onLogout }) {
           </div>
         </section>
 
-        {/* Future section / placeholder for upcoming features */}
-        <section className="card">
-          <h3 className="card-title">Coming soon</h3>
-          <ul className="feature-list">
+        {/* Roadmap / upcoming */}
+        <section className="card profile-card">
+          <h3 className="card-title profile-card-title">Coming soon</h3>
+          <ul className="feature-list profile-feature-list">
             <li>🔮 Forecast travel time incl. parking for a new trip</li>
             <li>🗺️ See hotspots where parking usually takes longer</li>
-            <li>📆 Compare workdays vs weekends</li>
+            <li>📆 Compare workdays vs weekends and spot patterns</li>
           </ul>
         </section>
 
-        <button className="btn-danger full-width" onClick={onLogout}>
+        <button className="btn-danger full-width profile-logout-btn" onClick={onLogout}>
           Log out
         </button>
       </main>

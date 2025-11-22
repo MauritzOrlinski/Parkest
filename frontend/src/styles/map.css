@@ -1,0 +1,72 @@
+
+
+.map-screen {
+    background: radial-gradient(circle at top left, #1d4ed8 0, #020617 52%, #020617 100%);
+    color: #e5e7eb;
+  }
+  
+  .map-screen .screen-main {
+    max-width: none;
+    margin: 0;
+  }
+  
+  .map-screen-main {
+    flex: 1;
+    padding: 0;
+  }
+  
+  .map-container {
+    width: 100%;
+    height: 100%;
+  }
+  
+  @media (max-height: 500px) {
+    .map-container {
+      min-height: 300px;
+    }
+  }
+  
+  
+  .header--map {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-inline: 16px;
+    padding-top: 14px;
+    padding-bottom: 10px;
+    background: linear-gradient(to bottom, rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0.7));
+    box-shadow: 0 14px 30px rgba(15, 23, 42, 0.7);
+  }
+  
+  .map-screen .logo {
+    color: #f9fafb;
+    font-size: 18px;
+  }
+  
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .header-username {
+    font-size: 13px;
+    color: #9ca3af;
+  }
+  
+  /* Make the profile button look like a small pill on dark bg */
+  .header-profile-btn {
+    width: auto;
+    padding-inline: 12px;
+    font-size: 13px;
+    background: #e5e7eb;
+    color: #111827;
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.6);
+  }
+  

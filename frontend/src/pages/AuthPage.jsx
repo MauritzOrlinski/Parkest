@@ -18,14 +18,13 @@ function AuthPage({ onLogin }) {
   };
 
   async function loginWithBackend(email, password) {
-    // 1) Get token from /token
     const tokenRes = await fetch(`${API_BASE_URL}/token`, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
       },
       body: new URLSearchParams({
-        username: email, 
+        username: email, // FastAPI OAuth2PasswordRequestForm uses "username"
         password,
       }),
     });
@@ -36,7 +35,7 @@ function AuthPage({ onLogin }) {
         const data = await tokenRes.json();
         if (data.detail) detail = data.detail;
       } catch {
-        // ignore parsing error, use default
+        // ignore
       }
       throw new Error(detail);
     }
@@ -44,7 +43,6 @@ function AuthPage({ onLogin }) {
     const tokenData = await tokenRes.json();
     const accessToken = tokenData.access_token;
 
-    // 2) Fetch current user from /users/me
     const meRes = await fetch(`${API_BASE_URL}/users/me`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -57,10 +55,9 @@ function AuthPage({ onLogin }) {
 
     const user = await meRes.json();
 
-    // 3) Call onLogin with user + token
     onLogin({
       ...user,
-      token: accessToken, 
+      token: accessToken,
     });
 
     navigate("/map");
@@ -77,7 +74,6 @@ function AuthPage({ onLogin }) {
       }
 
       if (mode === "register") {
-        // 1) Register user
         const res = await fetch(`${API_BASE_URL}/register`, {
           method: "POST",
           headers: {
@@ -86,7 +82,6 @@ function AuthPage({ onLogin }) {
           body: JSON.stringify({
             email: form.email,
             password: form.password,
-            name: form.name,
           }),
         });
 
@@ -96,15 +91,13 @@ function AuthPage({ onLogin }) {
             const data = await res.json();
             if (data.detail) detail = data.detail;
           } catch {
-            // ignore parse error
+            // ignore
           }
           throw new Error(detail);
         }
 
-        // 2) After successful registration, log them in
         await loginWithBackend(form.email, form.password);
       } else {
-        // mode === "login"
         await loginWithBackend(form.email, form.password);
       }
     } catch (err) {
@@ -114,14 +107,39 @@ function AuthPage({ onLogin }) {
     }
   };
 
+  const title = mode === "login" ? "Welcome back" : "Create your account";
+  const subtitle =
+    mode === "login"
+      ? "Sign in to see your live parking-aware ETA and time saved."
+      : "Join the private beta and start tracking how much time you really save.";
+
   return (
-    <div className="screen">
-      <header className="header">
-        <h1 className="logo">Parking Buddy</h1>
+    <div className="screen auth-screen">
+      <header className="header landing-header auth-header">
+        <div className="landing-logo-group">
+          <div className="logo-mark">PB</div>
+          <div className="logo-text">
+            <h1 className="logo">Parking Buddy</h1>
+            <p className="logo-tagline">Time-aware parking planner</p>
+          </div>
+        </div>
+
+        <div className="landing-header-actions">
+          <Link to="/" className="text-link landing-header-link">
+            Back to landing
+          </Link>
+        </div>
       </header>
 
-      <main className="screen-main">
-        <div className="card">
+      <main className="screen-main auth-main">
+        <section className="card auth-card">
+          <p className="pill-badge auth-pill">
+            {mode === "login" ? "Secure sign-in" : "1-minute setup"}
+          </p>
+
+          <h2 className="auth-title">{title}</h2>
+          <p className="auth-subtitle">{subtitle}</p>
+
           <div className="auth-toggle">
             <button
               type="button"
@@ -145,14 +163,14 @@ function AuthPage({ onLogin }) {
             </button>
           </div>
 
-          <form className="form" onSubmit={handleSubmit}>
+          <form className="form auth-form" onSubmit={handleSubmit}>
             {mode === "register" && (
               <div className="form-group">
                 <label className="label" htmlFor="name">
                   Name
                 </label>
                 <input
-                  className="input"
+                  className={`input ${error ? "input-error" : ""}`}
                   id="name"
                   name="name"
                   type="text"
@@ -168,7 +186,7 @@ function AuthPage({ onLogin }) {
                 Email
               </label>
               <input
-                className="input"
+                className={`input ${error ? "input-error" : ""}`}
                 id="email"
                 name="email"
                 type="email"
@@ -184,7 +202,7 @@ function AuthPage({ onLogin }) {
                 Password
               </label>
               <input
-                className="input"
+                className={`input ${error ? "input-error" : ""}`}
                 id="password"
                 name="password"
                 type="password"
@@ -197,7 +215,7 @@ function AuthPage({ onLogin }) {
 
             {error && <p className="error-text">{error}</p>}
 
-            <button type="submit" className="btn-primary" disabled={loading}>
+            <button type="submit" className="btn-primary auth-submit-btn" disabled={loading}>
               {loading
                 ? mode === "login"
                   ? "Logging in..."
@@ -239,11 +257,12 @@ function AuthPage({ onLogin }) {
               </>
             )}
           </p>
-        </div>
 
-        <Link to="/" className="text-link small-link">
-          ← Back to landing
-        </Link>
+          <p className="auth-footnote">
+            By continuing you agree that Parking Buddy will safely store your account data
+            to calculate time saved.
+          </p>
+        </section>
       </main>
     </div>
   );

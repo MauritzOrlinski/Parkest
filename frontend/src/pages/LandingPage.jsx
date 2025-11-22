@@ -3,67 +3,145 @@ import { Link } from "react-router-dom";
 
 function LandingPage({ isLoggedIn }) {
   return (
-    <div className="screen">
-      <header className="header">
-        <h1 className="logo">Parking Buddy</h1>
+    <div className="screen landing-screen">
+      <header className="header landing-header">
+        <div className="landing-logo-group">
+          <div className="logo-mark">PB</div>
+          <div className="logo-text">
+            <h1 className="logo">Parking Buddy</h1>
+            <p className="logo-tagline">Time-aware parking planner</p>
+          </div>
+        </div>
+
+        <div className="landing-header-actions">
+          {isLoggedIn ? (
+            <Link to="/map" className="text-link landing-header-link">
+              Open app →
+            </Link>
+          ) : (
+            <Link to="/auth" className="text-link landing-header-link">
+              Sign in
+            </Link>
+          )}
+        </div>
       </header>
 
-      <main className="screen-main">
-        <section className="hero">
-          <h2 className="hero-title">Stop wasting time parking ⏱️</h2>
-          <p className="hero-subtitle">
-            Parking Buddy estimates your total travel time by including how long it
-            usually takes you to find a parking spot — so you can leave at the
-            right moment and arrive relaxed.
-          </p>
+      <main className="screen-main landing-main">
+        {/* HERO */}
+        <section className="landing-hero">
+          <div className="landing-hero-copy">
+            <p className="pill-badge">New • Private beta</p>
+            <h2 className="hero-title">
+              Know your <span className="hero-highlight">real</span> arrival time.
+            </h2>
+            <p className="hero-subtitle">
+              Parking Buddy factors in how long it actually takes you to find a spot,
+              so your ETA finally matches reality — not just what the navigation says.
+            </p>
+
+            <div className="hero-actions">
+              {isLoggedIn ? (
+                <>
+                  <Link to="/map" className="btn-primary">
+                    Open app
+                  </Link>
+                  <Link to="/profile" className="btn-ghost">
+                    View my stats
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link to="/auth" className="btn-primary">
+                    Get started free
+                  </Link>
+                  <Link to="/map" className="btn-ghost">
+                    Try live map (demo)
+                  </Link>
+                </>
+              )}
+            </div>
+
+            <div className="hero-metrics-row">
+              <div className="hero-metric">
+                <span className="hero-metric-number">10–15 min</span>
+                <span className="hero-metric-label">typical time wasted parking</span>
+              </div>
+              <div className="hero-metric">
+                <span className="hero-metric-number">4 min</span>
+                <span className="hero-metric-label">avg. time saved per trip</span>
+              </div>
+              <div className="hero-metric">
+                <span className="hero-metric-number">100%</span>
+                <span className="hero-metric-label">control over your schedule</span>
+              </div>
+            </div>
+          </div>
+
+          {/* “Phone” preview card */}
+          <div className="landing-hero-preview">
+            <div className="landing-phone-shell">
+              <div className="landing-phone-header">
+                <span className="landing-phone-dot" />
+                <span className="landing-phone-dot" />
+                <span className="landing-phone-dot" />
+              </div>
+              <div className="landing-phone-map-skeleton">
+                <div className="landing-phone-road" />
+                <div className="landing-phone-road landing-phone-road-secondary" />
+                <div className="landing-phone-pin" />
+              </div>
+              <div className="landing-phone-stats">
+                <div className="landing-phone-stat">
+                  <span className="landing-phone-stat-label">ETA</span>
+                  <span className="landing-phone-stat-value">18 min</span>
+                </div>
+                <div className="landing-phone-stat">
+                  <span className="landing-phone-stat-label">Parking search</span>
+                  <span className="landing-phone-stat-value">6 min</span>
+                </div>
+                <div className="landing-phone-stat">
+                  <span className="landing-phone-stat-label">Time saved</span>
+                  <span className="landing-phone-stat-value positive">+4 min</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </section>
 
-        <section className="hero-actions">
-          {isLoggedIn ? (
-            <>
-              <Link className="btn-primary" to="/profile">
-                View my stats
-              </Link>
-              <Link className="btn-secondary" to="/map">
-                Open parking map
-              </Link>
-            </>
-          ) : (
-            <>
-              <Link className="btn-primary" to="/auth">
-                Get started
-              </Link>
-              <Link className="btn-secondary" to="/map">
-                Try the map
-              </Link>
-              <a className="btn-ghost" href="#features">
-                How it saves your time
-              </a>
-            </>
-          )}
-        </section>
-
-        <section id="features" className="card">
-          <h3 className="card-title">How it works</h3>
-          <ul className="feature-list">
-            <li>📍 Track trips & parking search time</li>
-            <li>📊 Learn your typical “parking overhead” per area</li>
-            <li>⏰ See how much time you’ve already saved</li>
-          </ul>
-        </section>
-
-        <section className="card">
-          <h3 className="card-title">Why it matters</h3>
-          <ul className="feature-list">
-            <li>✅ Leave home at realistic times</li>
-            <li>✅ Fewer late arrivals & less stress</li>
-            <li>✅ Make smarter decisions: drive, bike or public transport</li>
-          </ul>
+        {/* SECONDARY SECTION */}
+        <section className="landing-secondary">
+          <h3 className="landing-secondary-title">Why drivers use Parking Buddy</h3>
+          <div className="landing-secondary-grid">
+            <div className="landing-secondary-card">
+              <p className="landing-secondary-label">Plan smarter</p>
+              <p className="landing-secondary-text">
+                See realistic travel time that includes your typical parking search for
+                each area.
+              </p>
+            </div>
+            <div className="landing-secondary-card">
+              <p className="landing-secondary-label">Arrive on time</p>
+              <p className="landing-secondary-text">
+                Decide when to leave without guessing &mdash; avoid being “just 10 min
+                late” every time.
+              </p>
+            </div>
+            <div className="landing-secondary-card">
+              <p className="landing-secondary-label">Choose the best mode</p>
+              <p className="landing-secondary-text">
+                Quickly see if driving, biking or public transport actually gets you
+                there fastest.
+              </p>
+            </div>
+          </div>
         </section>
       </main>
 
-      <footer className="footer">
-        <p className="footer-text">© {new Date().getFullYear()} Parking Buddy</p>
+      <footer className="footer landing-footer">
+        <p className="footer-text">
+          © {new Date().getFullYear()} Parking Buddy · Built for people who hate being
+          late
+        </p>
       </footer>
     </div>
   );

@@ -1,0 +1,122 @@
+
+.auth-screen {
+    background: radial-gradient(circle at top left, #1d4ed8 0, #020617 52%, #020617 100%);
+    color: #e5e7eb;
+  }
+  
+  .auth-header {
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .auth-main {
+    max-width: 420px;
+    width: 100%;
+    margin: 0 auto 24px;
+  }
+  
+  .auth-card {
+    background: rgba(15, 23, 42, 0.96);
+    border-radius: 20px;
+    border: 1px solid rgba(148, 163, 184, 0.4);
+    box-shadow: 0 22px 50px rgba(15, 23, 42, 0.9);
+    color: #e5e7eb;
+  }
+  
+  .auth-pill {
+    margin-bottom: 6px;
+  }
+  
+  .auth-title {
+    margin: 0 0 4px;
+    font-size: 22px;
+    font-weight: 700;
+    color: #f9fafb;
+  }
+  
+  .auth-subtitle {
+    margin: 0 0 12px;
+    font-size: 13px;
+    color: #9ca3af;
+  }
+  
+  .auth-form {
+    margin-top: 8px;
+  }
+  
+  /* Dark inputs inside auth */
+  .auth-screen .input {
+    background: #020617;
+    border-color: #1f2937;
+    color: #e5e7eb;
+  }
+  
+  .auth-screen .input::placeholder {
+    color: #6b7280;
+  }
+  
+  .auth-screen .input:focus {
+    border-color: #60a5fa;
+    box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.6);
+  }
+  
+  /* Auth tabs */
+  
+  .auth-toggle {
+    display: flex;
+    padding: 4px;
+    background: #111827;
+    border-radius: 999px;
+    margin-bottom: 12px;
+  }
+  
+  .auth-tab {
+    flex: 1;
+    border-radius: 999px;
+    border: none;
+    background: transparent;
+    font-size: 14px;
+    padding: 8px 0;
+    cursor: pointer;
+    font-weight: 500;
+    color: #6b7280;
+  }
+  
+  .auth-tab--active {
+    background: #020617;
+    color: #f9fafb;
+    box-shadow: 0 3px 6px rgba(15, 23, 42, 0.8);
+  }
+  
+  /* Error styling */
+  
+  .error-text {
+    margin: 4px 0 0;
+    font-size: 13px;
+    color: #fca5a5;
+  }
+  
+  .input-error {
+    border-color: #f97373 !important;
+    box-shadow: 0 0 0 1px rgba(248, 113, 113, 0.5) !important;
+  }
+  
+  .auth-submit-btn {
+    margin-top: 6px;
+  }
+  
+  /* Slightly lighter helper text on dark bg */
+  .auth-helper {
+    margin-top: 12px;
+    font-size: 13px;
+    color: #9ca3af;
+    text-align: center;
+  }
+  
+  .auth-footnote {
+    margin: 10px 0 0;
+    font-size: 11px;
+    color: #6b7280;
+    text-align: center;
+  }
+  

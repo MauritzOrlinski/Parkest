@@ -1,9 +1,13 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 function AuthPage({ onLogin }) {
   const [mode, setMode] = useState("login"); // 'login' | 'register'
   const [form, setForm] = useState({ email: "", password: "", name: "" });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -13,33 +17,100 @@ function AuthPage({ onLogin }) {
     }));
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  async function loginWithBackend(email, password) {
+    // 1) Get token from /token
+    const tokenRes = await fetch(`${API_BASE_URL}/token`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams({
+        username: email, 
+        password,
+      }),
+    });
 
-    if (!form.email || !form.password || (mode === "register" && !form.name)) {
-      alert("Please fill in all required fields.");
-      return;
+    if (!tokenRes.ok) {
+      let detail = "Login failed. Check your credentials.";
+      try {
+        const data = await tokenRes.json();
+        if (data.detail) detail = data.detail;
+      } catch {
+        // ignore parsing error, use default
+      }
+      throw new Error(detail);
     }
 
-    const exampleStats = {
-      totalTimeSavedMinutes: 186,
-      tripsTracked: 24,
-      avgParkingSearchBeforeMinutes: 11,
-      avgParkingSearchNowMinutes: 6,
-      lastWeekTimeSavedMinutes: 32,
-    };
+    const tokenData = await tokenRes.json();
+    const accessToken = tokenData.access_token;
 
-    const fakeUser = {
-      id: "123",
-      name: mode === "register" ? form.name : "Alex Driver",
-      email: form.email,
-      stats: exampleStats,
-    };
+    // 2) Fetch current user from /users/me
+    const meRes = await fetch(`${API_BASE_URL}/users/me`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
 
-    onLogin(fakeUser);
+    if (!meRes.ok) {
+      throw new Error("Failed to fetch user profile.");
+    }
 
-    // ⬇️ Go to the main app page: the map
+    const user = await meRes.json();
+
+    // 3) Call onLogin with user + token
+    onLogin({
+      ...user,
+      token: accessToken, 
+    });
+
     navigate("/map");
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+      if (!form.email || !form.password || (mode === "register" && !form.name)) {
+        throw new Error("Please fill in all required fields.");
+      }
+
+      if (mode === "register") {
+        // 1) Register user
+        const res = await fetch(`${API_BASE_URL}/register`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: form.email,
+            password: form.password,
+          }),
+        });
+
+        if (!res.ok) {
+          let detail = "Registration failed.";
+          try {
+            const data = await res.json();
+            if (data.detail) detail = data.detail;
+          } catch {
+            // ignore parse error
+          }
+          throw new Error(detail);
+        }
+
+        // 2) After successful registration, log them in
+        await loginWithBackend(form.email, form.password);
+      } else {
+        // mode === "login"
+        await loginWithBackend(form.email, form.password);
+      }
+    } catch (err) {
+      setError(err.message || "Something went wrong.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -54,14 +125,20 @@ function AuthPage({ onLogin }) {
             <button
               type="button"
               className={`auth-tab ${mode === "login" ? "auth-tab--active" : ""}`}
-              onClick={() => setMode("login")}
+              onClick={() => {
+                setMode("login");
+                setError("");
+              }}
             >
               Login
             </button>
             <button
               type="button"
               className={`auth-tab ${mode === "register" ? "auth-tab--active" : ""}`}
-              onClick={() => setMode("register")}
+              onClick={() => {
+                setMode("register");
+                setError("");
+              }}
             >
               Register
             </button>
@@ -117,8 +194,16 @@ function AuthPage({ onLogin }) {
               />
             </div>
 
-            <button type="submit" className="btn-primary">
-              {mode === "login" ? "Login" : "Create account"}
+            {error && <p className="error-text">{error}</p>}
+
+            <button type="submit" className="btn-primary" disabled={loading}>
+              {loading
+                ? mode === "login"
+                  ? "Logging in..."
+                  : "Creating account..."
+                : mode === "login"
+                ? "Login"
+                : "Create account"}
             </button>
           </form>
 
@@ -129,7 +214,10 @@ function AuthPage({ onLogin }) {
                 <button
                   type="button"
                   className="text-link"
-                  onClick={() => setMode("register")}
+                  onClick={() => {
+                    setMode("register");
+                    setError("");
+                  }}
                 >
                   Register
                 </button>
@@ -140,7 +228,10 @@ function AuthPage({ onLogin }) {
                 <button
                   type="button"
                   className="text-link"
-                  onClick={() => setMode("login")}
+                  onClick={() => {
+                    setMode("login");
+                    setError("");
+                  }}
                 >
                   Login
                 </button>

@@ -40,7 +40,7 @@ def register(user_in: schemas.UserCreate, db: Session = Depends(auth.get_db)):
         hashed = auth.get_password_hash(user_in.password)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
-    user = user_model.User(email=user_in.email, hashed_password=hashed, name=user_in.name, surname=user_in.surname)
+    user = user_model.User(email=user_in.email, hashed_password=hashed, name=user_in.name, saved_time=0.0)
     db.add(user)
     db.commit()
     db.refresh(user)

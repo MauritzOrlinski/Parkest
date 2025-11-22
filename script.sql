@@ -1,7 +1,9 @@
+DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS parking;
+
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
-    surname VARCHAR(100) NOT NULL,
     saved_time NUMERIC DEFAULT 0,
     email VARCHAR(255) NOT NULL UNIQUE,
     hashed_password VARCHAR(255) NOT NULL,

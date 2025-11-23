@@ -11,7 +11,7 @@ const libraries = ["places"];
 
 function MapPage({ user }) {
   const [center, setCenter] = useState(FALLBACK_CENTER);
-  const [zoom, setZoom] = useState(12);
+  const [zoom, setZoom] = useState(15);
   const [locations, setLocations] = useState([]);
   const [status, setStatus] = useState("Getting your location…");
   const [error, setError] = useState(null);
@@ -43,7 +43,7 @@ function MapPage({ user }) {
         const loc = { lat: latitude, lng: longitude };
         setUserLocation(loc);
         setCenter(loc);
-        setZoom(13);
+        setZoom(15);
         setStatus("Enter a destination address to search for parking near it.");
       },
       (geoError) => {

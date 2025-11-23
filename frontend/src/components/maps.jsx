@@ -23,17 +23,11 @@ const containerStyle = {
 const initialZoom = 12;
 
 const hiddenMapStyle = [
-  {
-    featureType: "poi",
-    stylers: [{ visibility: "off" }],
-  },
-  {
-    featureType: "transit",
-    stylers: [{ visibility: "off" }],
-  },
+  { featureType: "poi", stylers: [{ visibility: "off" }] },
+  { featureType: "transit", stylers: [{ visibility: "off" }] },
 ];
 
-// Choose marker color based on waiting time
+// ----- MARKER ICONS -----
 const getMarkerIcon = (waitingTime) => {
   let minutes = parseInt(waitingTime, 10);
   if (Number.isNaN(minutes)) minutes = null;
@@ -52,12 +46,12 @@ const getMarkerIcon = (waitingTime) => {
     fillColor: fill,
     fillOpacity: 1,
     strokeColor: "#0f172a",
-    strokeWeight: 1,
-    scale: 1.3,
+    strokeWeight: 1.5,
+    scale: 1.4,
   };
 };
 
-// Reusable info layout
+// ----- SHARED INFO CONTENT (desktop InfoWindow) -----
 const MarkerInfoContent = ({ location }) => (
   <div
     style={{
@@ -88,7 +82,6 @@ const MarkerInfoContent = ({ location }) => (
       >
         {location.label || "Parking spot"}
       </h3>
-
       <span
         style={{
           padding: "2px 8px",
@@ -117,6 +110,7 @@ const MarkerInfoContent = ({ location }) => (
   </div>
 );
 
+// ----- MAIN MAP COMPONENT -----
 function MapComponent({
   apiKey,
   locations = [],
@@ -137,7 +131,7 @@ function MapComponent({
   const [directionsCar, setDirectionsCar] = useState(null);
   const [directionsWalk, setDirectionsWalk] = useState(null);
 
-  // Detect mobile viewport
+  // Detect mobile screen
   useEffect(() => {
     const checkSize = () => {
       if (typeof window !== "undefined") {
@@ -171,10 +165,10 @@ function MapComponent({
     ) {
       return { lat: propCenter.lat, lng: propCenter.lng };
     }
-    if (locations && locations.length > 0) {
+    if (locations.length > 0) {
       return { lat: locations[0].lat, lng: locations[0].lng };
     }
-    return { lat: 48.13513, lng: 11.58198 };
+    return { lat: 48.13513, lng: 11.58198 }; // Munich
   }, [propCenter, locations]);
 
   const effectiveZoom =
@@ -182,8 +176,53 @@ function MapComponent({
       ? propZoom
       : initialZoom;
 
+  // Average estimated search time (minutes) over all numeric spots
+  const averageSearchTimeMinutes = useMemo(() => {
+    const times = locations
+      .map((loc) => parseInt(loc.waitingTime, 10))
+      .filter((m) => !Number.isNaN(m));
+    if (!times.length) return null;
+    const sum = times.reduce((a, b) => a + b, 0);
+    return sum / times.length;
+  }, [locations]);
+
+  // Total travel stats for the currently selected parking:
+  //   carMinutes + walkMinutes + searchMinutes = totalMinutes
+  const travelStatsForSelected = useMemo(() => {
+    if (!selectedParking || !directionsCar || !directionsWalk) return null;
+
+    const carRoute = directionsCar.routes?.[0];
+    const walkRoute = directionsWalk.routes?.[0];
+    if (!carRoute || !walkRoute) return null;
+
+    const carSeconds = (carRoute.legs || []).reduce(
+      (sum, leg) => sum + (leg.duration?.value || 0),
+      0
+    );
+    const walkSeconds = (walkRoute.legs || []).reduce(
+      (sum, leg) => sum + (leg.duration?.value || 0),
+      0
+    );
+
+    const carMinutes = carSeconds / 60;
+    const walkMinutes = walkSeconds / 60;
+
+    const rawSearch = parseInt(selectedParking.waitingTime, 10);
+    const hasSearch = !Number.isNaN(rawSearch);
+    const searchMinutes = hasSearch ? rawSearch : 0;
+
+    const totalMinutes = carMinutes + walkMinutes + searchMinutes;
+
+    return {
+      carMinutes,
+      walkMinutes,
+      searchMinutes: hasSearch ? searchMinutes : null,
+      totalMinutes,
+    };
+  }, [selectedParking, directionsCar, directionsWalk]);
+
   if (loadError) return <div>Map Load Error: {loadError.message}</div>;
-  if (!isLoaded) return <div>Loading Google Maps...</div>;
+  if (!isLoaded) return <div>Loading Google Maps…</div>;
 
   const canRoute =
     !!userLocation &&
@@ -191,6 +230,14 @@ function MapComponent({
     !!selectedParking &&
     typeof userLocation.lat === "number" &&
     typeof destination.lat === "number";
+
+  // Line symbol for dashed walking polyline
+  const walkingLineSymbol = {
+    path: "M 0,-1 0,1",
+    strokeOpacity: 1,
+    strokeColor: "#1a73e8",
+    scale: 4,
+  };
 
   return (
     <>
@@ -207,7 +254,9 @@ function MapComponent({
           zoomControl: true,
         }}
       >
-        {/* Car route: user → parking */}
+        {/* ----- ROUTES ----- */}
+
+        {/* Car: user → parking (solid blue) */}
         {canRoute && !directionsCar && (
           <DirectionsService
             options={{
@@ -225,7 +274,21 @@ function MapComponent({
           />
         )}
 
-        {/* Walk route: parking → destination */}
+        {directionsCar && (
+          <DirectionsRenderer
+            directions={directionsCar}
+            options={{
+              polylineOptions: {
+                strokeColor: "#1a73e8", // Google blue
+                strokeOpacity: 0.95,
+                strokeWeight: 6,
+              },
+              suppressMarkers: true,
+            }}
+          />
+        )}
+
+        {/* Walk: parking → destination (dashed) */}
         {canRoute && !directionsWalk && (
           <DirectionsService
             options={{
@@ -243,32 +306,28 @@ function MapComponent({
           />
         )}
 
-        {directionsCar && (
-          <DirectionsRenderer
-            directions={directionsCar}
-            options={{
-              polylineOptions: {
-                strokeOpacity: 0.9,
-                strokeWeight: 5,
-              },
-            }}
-          />
-        )}
-
         {directionsWalk && (
           <DirectionsRenderer
             directions={directionsWalk}
             options={{
               polylineOptions: {
-                strokeOpacity: 0.9,
+                strokeColor: "#1a73e8", // same blue, dashed
+                strokeOpacity: 0,
                 strokeWeight: 4,
-                strokeDasharray: [10, 10],
+                icons: [
+                  {
+                    icon: walkingLineSymbol,
+                    offset: "0",
+                    repeat: "14px",
+                  },
+                ],
               },
+              suppressMarkers: true,
             }}
           />
         )}
 
-        {/* Parking markers */}
+        {/* ----- PARKING MARKERS ----- */}
         {locations.map((location, index) => (
           <Marker
             key={index}
@@ -276,7 +335,7 @@ function MapComponent({
             onClick={() => handleMarkerClick(location)}
             icon={{
               ...getMarkerIcon(location.waitingTime),
-              anchor: new window.google.maps.Point(12, 24),
+              anchor: new window.google.maps.Point(12, 22),
               labelOrigin: new window.google.maps.Point(12, -6),
             }}
             label={{
@@ -286,8 +345,8 @@ function MapComponent({
               fontSize: "13px",
             }}
           >
-            {/* Desktop / tablet: normal InfoWindow */}
-            {!isMobile && activeMarker && activeMarker === location && (
+            {/* Desktop / tablet: InfoWindow above pin */}
+            {!isMobile && activeMarker === location && (
               <InfoWindow
                 position={{ lat: location.lat, lng: location.lng }}
                 onCloseClick={handleCloseClick}
@@ -298,7 +357,7 @@ function MapComponent({
           </Marker>
         ))}
 
-        {/* Optional: marker for user and destination */}
+        {/* Optional: user + destination markers */}
         {userLocation && (
           <Marker
             position={userLocation}
@@ -327,7 +386,7 @@ function MapComponent({
         )}
       </GoogleMap>
 
-      {/* Phone-sized: bottom sheet instead of InfoWindow */}
+      {/* ----- MOBILE BOTTOM SHEET (EXTENDED) ----- */}
       {isMobile && activeMarker && (
         <div
           style={{
@@ -341,7 +400,7 @@ function MapComponent({
             borderTopRightRadius: "16px",
             boxShadow: "0 -10px 30px rgba(15, 23, 42, 0.25)",
             padding: "12px 16px 18px",
-            maxHeight: "40vh",
+            maxHeight: "65vh",
           }}
         >
           <div
@@ -353,26 +412,40 @@ function MapComponent({
               margin: "0 auto 8px",
             }}
           />
+
           <div
             style={{
               display: "flex",
               justifyContent: "space-between",
               alignItems: "flex-start",
               gap: "8px",
-              marginBottom: "4px",
+              marginBottom: "8px",
             }}
           >
-            <span
-              style={{
-                fontSize: "12px",
-                textTransform: "uppercase",
-                letterSpacing: "0.08em",
-                color: "#9ca3af",
-                fontWeight: 600,
-              }}
-            >
-              Parking details
-            </span>
+            <div>
+              <div
+                style={{
+                  fontSize: "12px",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.08em",
+                  color: "#9ca3af",
+                  fontWeight: 600,
+                  marginBottom: "2px",
+                }}
+              >
+                Parking spot
+              </div>
+              <div
+                style={{
+                  fontSize: "15px",
+                  fontWeight: 600,
+                  color: "#0f172a",
+                }}
+              >
+                {activeMarker.label || "Unnamed parking spot"}
+              </div>
+            </div>
+
             <button
               onClick={handleCloseClick}
               style={{
@@ -391,7 +464,265 @@ function MapComponent({
             </button>
           </div>
 
-          <MarkerInfoContent location={activeMarker} />
+          {/* Stats row */}
+          <div
+            style={{
+              display: "flex",
+              gap: "12px",
+              marginBottom: "8px",
+              flexWrap: "wrap",
+            }}
+          >
+            {/* Total travel time card */}
+            <div
+              style={{
+                backgroundColor: "#eff6ff",
+                borderRadius: "12px",
+                padding: "8px 10px",
+                minWidth: "160px",
+                flex: 1,
+              }}
+            >
+              <div
+                style={{
+                  fontSize: "11px",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.07em",
+                  color: "#60a5fa",
+                  marginBottom: "2px",
+                  fontWeight: 600,
+                }}
+              >
+                Total travel time
+              </div>
+              {travelStatsForSelected ? (
+                <>
+                  <div
+                    style={{
+                      fontSize: "16px",
+                      fontWeight: 700,
+                      color: "#1d4ed8",
+                      marginBottom: "2px",
+                    }}
+                  >
+                    {Math.round(travelStatsForSelected.totalMinutes)} min
+                  </div>
+                  <div
+                    style={{
+                      fontSize: "11px",
+                      color: "#1d4ed8",
+                    }}
+                  >
+                    Car{" "}
+                    {Math.round(travelStatsForSelected.carMinutes)} min · Walk{" "}
+                    {Math.round(travelStatsForSelected.walkMinutes)} min
+                    {travelStatsForSelected.searchMinutes != null && (
+                      <> · Search {travelStatsForSelected.searchMinutes} min</>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <div
+                  style={{
+                    fontSize: "13px",
+                    color: "#1d4ed8",
+                  }}
+                >
+                  Calculating route…
+                </div>
+              )}
+            </div>
+
+            {/* Comparison card: search + total trip */}
+            <div
+              style={{
+                backgroundColor: "#f9fafb",
+                borderRadius: "12px",
+                padding: "8px 10px",
+                flex: 1,
+                minWidth: "160px",
+              }}
+            >
+              {(() => {
+                const spotMinutes = parseInt(activeMarker.waitingTime, 10);
+                const hasSpot = !Number.isNaN(spotMinutes);
+                const hasAvgSearch =
+                  typeof averageSearchTimeMinutes === "number" &&
+                  !Number.isNaN(averageSearchTimeMinutes);
+
+                return (
+                  <>
+                    <div
+                      style={{
+                        fontSize: "11px",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.07em",
+                        color: "#9ca3af",
+                        marginBottom: "4px",
+                        fontWeight: 600,
+                      }}
+                    >
+                      Compared to others
+                    </div>
+
+                    {/* SEARCH TIME COMPARISON */}
+                    {hasSpot && hasAvgSearch ? (
+                      (() => {
+                        const avgSearchRounded = Math.round(
+                          averageSearchTimeMinutes
+                        );
+                        const diffSearch = Math.round(
+                          averageSearchTimeMinutes - spotMinutes
+                        ); // positive → faster search
+
+                        let searchLabel;
+                        let searchColor;
+
+                        if (diffSearch > 0) {
+                          searchLabel = `Saves ${diffSearch} min search`;
+                          searchColor = "#16a34a";
+                        } else if (diffSearch < 0) {
+                          searchLabel = `${Math.abs(
+                            diffSearch
+                          )} min slower search`;
+                          searchColor = "#dc2626";
+                        } else {
+                          searchLabel = "Search time around average";
+                          searchColor = "#6b7280";
+                        }
+
+                        return (
+                          <>
+                            <div
+                              style={{
+                                fontSize: "12px",
+                                color: "#6b7280",
+                              }}
+                            >
+                              Avg search:{" "}
+                              <span
+                                style={{
+                                  fontWeight: 600,
+                                  color: "#111827",
+                                }}
+                              >
+                                {avgSearchRounded} min
+                              </span>
+                            </div>
+                            <div
+                              style={{
+                                fontSize: "12px",
+                                fontWeight: 600,
+                                color: searchColor,
+                                marginBottom: "4px",
+                              }}
+                            >
+                              {searchLabel}
+                            </div>
+                          </>
+                        );
+                      })()
+                    ) : (
+                      <div
+                        style={{
+                          fontSize: "12px",
+                          color: "#6b7280",
+                          marginBottom: "4px",
+                        }}
+                      >
+                        Not enough data to compare search time.
+                      </div>
+                    )}
+
+                    {/* TOTAL TRIP COMPARISON */}
+                    {travelStatsForSelected &&
+                    hasAvgSearch &&
+                    travelStatsForSelected.searchMinutes != null ? (
+                      (() => {
+                        const { totalMinutes, carMinutes, walkMinutes } =
+                          travelStatsForSelected;
+
+                        // Approx average total trip time:
+                        const avgTotalMinutes =
+                          averageSearchTimeMinutes + carMinutes + walkMinutes;
+
+                        const avgTotalRounded = Math.round(avgTotalMinutes);
+                        const diffTotal = Math.round(avgTotalMinutes - totalMinutes); // positive → this spot faster
+
+                        let totalLabel;
+                        let totalColor;
+
+                        if (diffTotal > 0) {
+                          totalLabel = `Saves ${diffTotal} min overall trip`;
+                          totalColor = "#16a34a";
+                        } else if (diffTotal < 0) {
+                          totalLabel = `${Math.abs(
+                            diffTotal
+                          )} min slower overall trip`;
+                          totalColor = "#dc2626";
+                        } else {
+                          totalLabel = "Total trip around average";
+                          totalColor = "#6b7280";
+                        }
+
+                        return (
+                          <>
+                            <div
+                              style={{
+                                fontSize: "12px",
+                                color: "#6b7280",
+                                marginTop: "4px",
+                              }}
+                            >
+                              Avg total trip:{" "}
+                              <span
+                                style={{
+                                  fontWeight: 600,
+                                  color: "#111827",
+                                }}
+                              >
+                                {avgTotalRounded} min
+                              </span>
+                            </div>
+                            <div
+                              style={{
+                                fontSize: "12px",
+                                fontWeight: 600,
+                                color: totalColor,
+                              }}
+                            >
+                              {totalLabel}
+                            </div>
+                          </>
+                        );
+                      })()
+                    ) : (
+                      <div
+                        style={{
+                          fontSize: "12px",
+                          color: "#6b7280",
+                          marginTop: "2px",
+                        }}
+                      >
+                        Waiting for route to compare total trip…
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
+            </div>
+          </div>
+
+          {/* Coordinates at the bottom */}
+          <div
+            style={{
+              marginTop: "4px",
+              fontSize: "11px",
+              color: "#9ca3af",
+            }}
+          >
+            {activeMarker.lat.toFixed(4)}, {activeMarker.lng.toFixed(4)}
+          </div>
         </div>
       )}
     </>

@@ -162,10 +162,14 @@ def get_current_hour_and_day_initial():
     now = datetime.now()
     hour_24 = now.hour
 
-    # Python's weekday(): Monday=0 ... Sunday=6
-    day_initials = ["MO", "TU", "WE", "TH", "FR", "SA", "SU"]
-    day_initial = day_initials[now.weekday()]
-
+    weekday_idx = now.weekday()
+    if weekday_idx < 5:
+        day_initial = "WT"
+    elif weekday_idx == 5:
+        day_initial = "SA"
+    else:
+        day_initial = "SO"
+    
     return hour_24, day_initial
 
 @app.post("/estimate_search_time")

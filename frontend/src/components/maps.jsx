@@ -1,4 +1,9 @@
-import React, { useState, useCallback, useMemo, useEffect } from "react";
+import React, {
+  useState,
+  useCallback,
+  useMemo,
+  useEffect,
+} from "react";
 import {
   GoogleMap,
   useJsApiLoader,
@@ -6,6 +11,7 @@ import {
   InfoWindow,
   DirectionsService,
   DirectionsRenderer,
+  OverlayView,
 } from "@react-google-maps/api";
 
 const libraries = ["places"];
@@ -370,32 +376,65 @@ function MapComponent({
           />
         )}
 
-        {/* Parking markers */}
+        {/* ----- PARKING CHIPS ----- */}
         {locations.map((location, index) => (
-          <Marker
+          <OverlayView
             key={index}
             position={{ lat: location.lat, lng: location.lng }}
-            onClick={() => handleMarkerClick(location)}
-            icon={{
-              ...getMarkerIcon(location.waitingTime),
-              labelOrigin: new window.google.maps.Point(12, -6),
-            }}
-            label={{
-              text: `${parseInt(location.waitingTime, 10)}m`,
-              color: "#0f172a",
-              fontWeight: "700",
-              fontSize: "13px",
-            }}
+            mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET}
           >
-            {!isMobile && activeMarker === location && (
-              <InfoWindow
-                position={{ lat: location.lat, lng: location.lng }}
-                onCloseClick={handleCloseClick}
+            <div
+              onClick={() => handleMarkerClick(location)}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                padding: "8px 14px",
+                borderRadius: "16px",
+                minWidth: "70px",
+                background: "#ffffff",
+                boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
+                fontSize: "13px",
+                fontWeight: 600,
+                color: "#0f172a",
+                cursor: "pointer",
+                userSelect: "none",
+                transform: "translate(-50%, -120%)", // position above anchor
+                whiteSpace: "nowrap",
+                textAlign: "center",
+              }}
+            >
+              {/* Perfect circle P Icon */}
+              <div
+                style={{
+                  width: "22px",
+                  height: "22px",
+                  borderRadius: "50%",
+                  backgroundColor: "#1d4ed8",
+                  color: "white",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: "12px",
+                  fontWeight: 700,
+                  flexShrink: 0,
+                  position: "relative",
+                  left: "-11px", // moves P slightly left
+                }}
               >
-                <MarkerInfoContent location={location} />
-              </InfoWindow>
-            )}
-          </Marker>
+                P
+              </div>
+
+              {/* Waiting time number */}
+              <span style={{ marginLeft: "-14px" }}>
+                {(() => {
+                  const minutes = parseInt(location.waitingTime, 10);
+                  if (Number.isNaN(minutes)) return "N/A";
+                  return `${minutes} min`;
+                })()}
+              </span>
+            </div>
+          </OverlayView>
         ))}
 
         {/* User marker */}
@@ -643,7 +682,9 @@ function MapComponent({
                             label = `Saves ${diffSearch} min search`;
                             color = "#16a34a";
                           } else if (diffSearch < 0) {
-                            label = `${Math.abs(diffSearch)} min slower search`;
+                            label = `${Math.abs(
+                              diffSearch,
+                            )} min slower search`;
                             color = "#dc2626";
                           } else {
                             label = "Search time around average";

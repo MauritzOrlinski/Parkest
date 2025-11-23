@@ -29,7 +29,7 @@ function App() {
         });
 
         if (!res.ok) {
-          // Token invalid/expired -> clear it
+          // token invalid / expired
           localStorage.removeItem("authToken");
           setUser(null);
         } else {
@@ -79,11 +79,7 @@ function App() {
         <Route
           path="/"
           element={
-            user ? (
-              <Navigate to="/map" replace />
-            ) : (
-              <LandingPage isLoggedIn={false} />
-            )
+            user ? <Navigate to="/map" replace /> : <LandingPage />
           }
         />
 
@@ -95,7 +91,7 @@ function App() {
           path="/map"
           element={
             user ? (
-              <MapPage user={user} />
+              <MapPage user={user} onUserUpdate={setUser} />
             ) : (
               <Navigate to="/auth" replace />
             )

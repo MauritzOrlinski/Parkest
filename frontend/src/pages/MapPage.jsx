@@ -11,7 +11,7 @@ const API_BASE_URL =
 const FALLBACK_CENTER = { lat: 48.13513, lng: 11.58198 }; // Munich
 const libraries = ["places"];
 
-function MapPage({ user }) {
+function MapPage({ user, onUserUpdate }) {
   const [center, setCenter] = useState(FALLBACK_CENTER);
   const [zoom, setZoom] = useState(15);
   const [locations, setLocations] = useState([]);
@@ -196,6 +196,48 @@ function MapPage({ user }) {
     }
   };
 
+  // Called when user presses "Start" in the bottom sheet
+  const handleStartTrip = async ({ parkingId, savedTimeMinutes }) => {
+    if (!user?.token) {
+      console.warn("No auth token; cannot record history event.");
+      return;
+    }
+    savedTimeMinutes = 999; // TEMPORARY OVERRIDE FOR DEMO PURPOSES
+    try {
+      const res = await fetch(`${API_BASE_URL}/history`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${user.token}`,
+        },
+        body: JSON.stringify({
+          parking_id: parkingId,
+          saved_time: savedTimeMinutes,
+        }),
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        console.error("Failed to create history event:", res.status, text);
+      } else {
+        // Optimistically update the user's total saved time in the UI
+        if (typeof onUserUpdate === "function") {
+          onUserUpdate((prev) => {
+            if (!prev) return prev;
+            const previous =
+              typeof prev.saved_time === "number" ? prev.saved_time : 0;
+            return {
+              ...prev,
+              saved_time: previous + savedTimeMinutes,
+            };
+          });
+        }
+      }
+    } catch (err) {
+      console.error("Error while creating history event:", err);
+    }
+  };
+
   if (loadError) {
     return <div>Map Load Error: {loadError.message}</div>;
   }
@@ -309,6 +351,7 @@ function MapPage({ user }) {
           locations={locations}
           userLocation={userLocation}
           destination={destination}
+          onStartTrip={handleStartTrip}
         />
       </main>
     </div>

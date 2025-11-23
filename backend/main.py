@@ -14,6 +14,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from parking_time_estimators.estimator import ParkingCapacityEstimator
 
 from datetime import datetime
+import random
 
 print("Loading parking capacity estimator model...")
 estimator = ParkingCapacityEstimator("/app/synthentic_parking_occupancy.csv")
@@ -191,4 +192,5 @@ def estimate_search_time(
         total_capacity=input.total_capacity,
         latitude=input.latitude,
         longitude=input.longitude
-    )}
+    ) + random.uniform(-2, 2)
+    }

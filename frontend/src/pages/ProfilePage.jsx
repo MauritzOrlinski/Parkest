@@ -42,7 +42,7 @@ function ProfilePage({ user, onLogout }) {
             <h>{user?.username || "test"}</h>
             <p>{user?.email || "test@email.com"}</p>
             <p>
-              Driving with Parking Buddy since{" "}
+              Driving with Parkiest since{" "}
               <span className="profile-email-highlight">private beta</span>
             </p>
           </div>
@@ -77,7 +77,7 @@ function ProfilePage({ user, onLogout }) {
             </div>
 
             <div className="stat-card">
-              <p className="stat-label">Before Parking Buddy</p>
+              <p className="stat-label">Before Parkiest</p>
               <p className="stat-value">
                 {stats.avgParkingSearchBeforeMinutes ?? 0} min
               </p>
@@ -85,7 +85,7 @@ function ProfilePage({ user, onLogout }) {
             </div>
 
             <div className="stat-card">
-              <p className="stat-label">Now with Parking Buddy</p>
+              <p className="stat-label">Now with Parkiest</p>
               <p className="stat-value">
                 {stats.avgParkingSearchNowMinutes ?? 0} min
               </p>

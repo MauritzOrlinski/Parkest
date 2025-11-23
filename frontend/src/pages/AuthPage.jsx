@@ -120,7 +120,7 @@ function AuthPage({ onLogin }) {
         <div className="landing-logo-group">
           <div className="logo-mark">PB</div>
           <div className="logo-text">
-            <h1 className="logo">Parking Buddy</h1>
+            <h1 className="logo">Parkiest</h1>
             <p className="logo-tagline">Time-aware parking planner</p>
           </div>
         </div>
@@ -260,7 +260,7 @@ function AuthPage({ onLogin }) {
           </p>
 
           <p className="auth-footnote">
-            By continuing you agree that Parking Buddy will safely store your account data
+            By continuing you agree that Parkiest will safely store your account data
             to calculate time saved.
           </p>
         </section>

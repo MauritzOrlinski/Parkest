@@ -8,7 +8,7 @@ function LandingPage({ isLoggedIn }) {
         <div className="landing-logo-group">
           <div className="logo-mark">PB</div>
           <div className="logo-text">
-            <h1 className="logo">Parking Buddy</h1>
+            <h1 className="logo">Parkiest</h1>
             <p className="logo-tagline">Time-aware parking planner</p>
           </div>
         </div>
@@ -35,7 +35,7 @@ function LandingPage({ isLoggedIn }) {
               Know your <span className="hero-highlight">real</span> arrival time.
             </h2>
             <p className="hero-subtitle">
-              Parking Buddy factors in how long it actually takes you to find a spot,
+              Parkiest factors in how long it actually takes you to find a spot,
               so your ETA finally matches reality — not just what the navigation says.
             </p>
 
@@ -110,7 +110,7 @@ function LandingPage({ isLoggedIn }) {
 
         {/* SECONDARY SECTION */}
         <section className="landing-secondary">
-          <h3 className="landing-secondary-title">Why drivers use Parking Buddy</h3>
+          <h3 className="landing-secondary-title">Why drivers use Parkiest</h3>
           <div className="landing-secondary-grid">
             <div className="landing-secondary-card">
               <p className="landing-secondary-label">Plan smarter</p>
@@ -139,7 +139,7 @@ function LandingPage({ isLoggedIn }) {
 
       <footer className="footer landing-footer">
         <p className="footer-text">
-          © {new Date().getFullYear()} Parking Buddy · Built for people who hate being
+          © {new Date().getFullYear()} Parkiest · Built for people who hate being
           late
         </p>
       </footer>

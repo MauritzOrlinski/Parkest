@@ -249,7 +249,7 @@ function MapPage({ user, onUserUpdate }) {
     <div className="screen map-screen">
       <header className="header header--map">
         <div className="header-left">
-          <h1 className="logo">Parking Buddy</h1>
+          <h1 className="logo">Parkiest</h1>
         </div>
         <div className="header-right">
           <span className="header-username">

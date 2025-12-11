@@ -1,11 +1,6 @@
 # Parkest
-
-## Live demo
-Scan the QR code with the smartphone to try the application now!
-
-![alt text](https://raw.githubusercontent.com/MauritzOrlinski/Parkest/refs/heads/main/qrdemo.png)
-
-⚠️ The frontend is optimized for mobile devices, so it is recommended to setup the browser view as mobile if you are visiting through a laptop. *Or just use your smartphone for the best experience!*
+## Disclaimer:
+**This is a project built in a Hackathon in 48 Hours. It is not high-quality code!**
 
 ## The application
 Parkest is a parking-optimization web application designed to help users find the best parking spot near their chosen destination. The app automatically:
